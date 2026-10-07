@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MeMoREval: What Should Embodied Agents Remember?</title>
+  <meta name="description" content="MeMoREval is a controlled benchmark for memory modality in embodied agents: 53 tasks in 4 simulated environments, measuring task success together with the inference cost of writing and reading memory.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="#top"><span class="c">M</span>e<span class="c">M</span>o<span class="c">RE</span>val</a>
+    <nav class="topnav" aria-label="Sections">
+      <a href="#walkthrough">Walkthrough</a>
+      <a href="#protocol">Protocol</a>
+      <a href="#benchmark">Benchmark</a>
+      <a href="#results">Results</a>
+      <a href="#release">Try it</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="title-panel">
+        <h1>What Should Embodied Agents Remember? Benchmarking and Evaluating Memory Modality for Embodied Agents</h1>
+        <div class="authors">
+          <span>Junxiang Wang<sup>1,2†</sup></span>
+          <span>Yuchen Liu<sup>1,3†</sup></span>
+          <span>Yi Wu<sup>1</sup></span>
+          <span>Guofei Chen<sup>1</sup></span>
+          <span>Nir Pechuk<sup>2</sup></span>
+          <span>Tao Chen<sup>1</sup></span>
+          <span>Zackory Erickson<sup>2</sup></span>
+          <span>Yuzhe Qin<sup>1</sup></span>
+          <span>Tianyu Li<sup>1</sup></span>
+        </div>
+        <div class="affil">
+          <span><sup>1</sup>Dexmate</span>
+          <span><sup>2</sup>Carnegie Mellon University</span>
+          <span><sup>3</sup>Purdue University</span>
+          <span><sup>†</sup>Work done during an internship at Dexmate</span>
+        </div>
+        <p class="tldr">Should a robot remember what it saw as text, as generated descriptions, or as the camera frames themselves? MeMoREval measures how that choice affects task success and the inference cost of building and reading memory.</p>
+        <div class="panel-foot">
+          <div class="links">
+            <span class="btn soon">Paper · coming soon</span>
+            <span class="btn soon">Code · coming soon</span>
+            <span class="btn soon">BibTeX · coming soon</span>
+          </div>
+          <img class="dex" src="assets/img/dexmate-logo.svg" alt="Dexmate">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wt-section">
+    <div class="wrap">
+      <!-- Real-robot walkthrough -->
+      <figure class="wt" id="walkthrough" data-walkthrough tabindex="0" aria-label="Real-robot walkthrough of memory being written and later read">
+        <div class="wt-head">
+          <h2 class="wt-title">From experience to request: what the robot saves, and what it uses</h2>
+          <div class="wt-illus"><span class="pill">Illustrative</span><span>Footage and camera frames are from our real-robot run; the memory contents shown are simplified to illustrate each modality.</span></div>
+        </div>
+
+        <div class="wt-main">
+          <div class="wt-screen">
+            <div class="wt-video">
+              <video class="vA" muted playsinline preload="auto"></video>
+              <video class="vB off" muted playsinline preload="auto"></video>
+              <span class="wt-tag" data-phase="exp">Experience</span>
+              <div class="bubble b-instr"><span class="who">User</span><span class="say"></span></div>
+              <div class="bubble b-req"><span class="who">User, later</span><span class="say"></span></div>
+            </div>
+            <div class="evidence"></div>
+          </div>
+
+          <div class="mem" aria-label="Memory written during the experience"></div>
+        </div>
+
+        <div class="wt-controls">
+          <button class="play" type="button" aria-label="Play or pause">
+            <svg class="i-play" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9.5-5.5z"/></svg>
+            <svg class="i-pause" viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>
+          </button>
+          <div class="chapters" role="group" aria-label="Chapters"></div>
+          <span class="ch-now" aria-live="polite"></span>
+        </div>
+
+        <div class="agent">
+          <div class="ag-req">
+            <div class="ag-h">Agent <span class="pill">fresh context · memory only</span></div>
+            <p class="ag-wait">Later, a request arrives. The agent has no camera view and must answer from memory alone.</p>
+            <q class="ag-q"></q>
+          </div>
+          <ol class="checks"></ol>
+          <div class="ag-plan">
+            <div class="ag-h">Plan <span class="sub">executed open-loop</span></div>
+            <div class="plan-list"></div>
+          </div>
+        </div>
+        <svg class="wt-arcs" aria-hidden="true"></svg>
+      </figure>
+
+      <!-- Second real-robot task -->
+      <figure class="demo2" id="lemon">
+        <figcaption class="demo2-h">A second task on the same robot</figcaption>
+        <div class="demo2-grid">
+          <div class="clip">
+            <video src="media/real/lemon_experience.mp4" poster="media/real/lemon_experience.jpg" muted playsinline loop preload="metadata" data-autoplay></video>
+            <p><b>Experience.</b> <q>Move the lemon to the blue plate.</q></p>
+          </div>
+          <div class="clip">
+            <video src="media/real/lemon_execution.mp4" poster="media/real/lemon_execution.jpg" muted playsinline loop preload="metadata" data-autoplay></video>
+            <p><b>Later.</b> <q>Which color is the plate you took the lemon from?</q> Orange. <q>Bring me the fruit to the right of where the lemon was.</q></p>
+          </div>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="block" id="protocol"><div class="wrap"><h2>Protocol</h2><p class="todo">Next: the experience → request protocol.</p></div></section>
+  <section class="block" id="benchmark"><div class="wrap"><h2>Benchmark</h2><p class="todo">Next: environments, categories and the task gallery.</p></div></section>
+  <section class="block" id="results"><div class="wrap"><h2>Results</h2><p class="todo">Next: frames vs. descriptions, then deployment-oriented conditions.</p></div></section>
+  <section class="block" id="release"><div class="wrap"><h2>Try it with your memory system</h2><p class="todo">Release details to follow.</p></div></section>
+</main>
+
+<footer><div class="wrap">© 2026 Dexmate</div></footer>
+
+<script src="assets/js/walkthrough-data.js"></script>
+<script src="assets/js/walkthrough.js"></script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>
