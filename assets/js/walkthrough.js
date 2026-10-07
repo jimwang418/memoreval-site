@@ -15,9 +15,9 @@
     write: '<svg viewBox="0 0 14 12"><path d="M1 6h9" stroke="currentColor" stroke-width="1.8"/><path d="M8 1.5L13 6l-5 4.5z" fill="currentColor"/></svg>',
   };
   const COLS = [
-    { key: 'text', label: 'Text record', note: 'memory writer' },
+    { key: 'text', label: 'Text record', note: 'writer output' },
     { key: 'desc', label: 'Description', note: '+1 model call each', call: true },
-    { key: 'image', label: 'Image', note: 'no model call' },
+    { key: 'image', label: 'Frame', note: 'no model call' },
     { key: 'graph', label: 'Scene graph', note: 'no model call' },
   ];
   const TAG = { exp: 'Experience · writing memory', req: 'Request · later', text: 'Inspecting memory', desc: 'Inspecting memory', image: 'Inspecting memory', out: 'Executing the plan' };
@@ -33,14 +33,10 @@
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
   const getJSON = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u); return r.json(); });
-  const headOK = (u) => fetch(u, { method: 'HEAD' }).then((r) => r.ok).catch(() => false);
   (async () => {
-    let src = D;
-    const ok = await headOK(D.clips.experience.src);
-    let seg = ok ? await getJSON(D.segments).catch(() => null) : null;
-    if (!seg && D.fallback) { src = D.fallback; seg = await getJSON(src.segments); }
-    const boxes = await getJSON('data/real_boxes.json').catch(() => ({}));
-    init(Array.isArray(seg) ? seg : seg.clips, boxes, src.clips);
+    const [seg, boxes] = await Promise.all([getJSON(D.segments).catch(() => null), getJSON('data/real_boxes.json').catch(() => ({}))]);
+    if (!seg) { root.classList.add('failed'); return; }
+    init(Array.isArray(seg) ? seg : seg.clips, boxes, D.clips);
   })();
 
   function init(clips, boxes, CL) {
@@ -71,16 +67,26 @@
 
     const steps = D.steps.map((s, i) => ({ ...s, i, a: mA(s.src[0]), b: mA(s.src[1]), cap: mA(s.capture) }));
     const out0 = ph('out').t0;
-    const plan = D.plan.map((s, i) => ({ ...s, i, a: out0 + mB(s.src[0]) - rEnd, b: out0 + mB(s.src[1]) - rEnd }));
+    const plan = D.plan.map((s, i) => ({ ...s, i, a: out0 + mB(s.src[0]) - rEnd, b: Math.min(out0 + mB(s.src[1]) - rEnd, T - 0.05) }));
     const instrOff = Math.max(mA(D.steps[0].src[1]) + 1.2, 2.5);
     const imgInsp = D.inspect.find((s) => s.mod === 'image');
 
     // ---------- DOM ----------
     const video = $('.wt-video');
     const vids = { A: $('.vA'), B: $('.vB') };
-    vids.A.src = CL.experience.src; vids.A.poster = CL.experience.poster;
-    vids.B.src = CL.execution.src; vids.B.poster = CL.execution.poster;
-    const tag = $('.wt-tag');
+    vids.A.poster = CL.experience.poster;
+    vids.B.preload = 'metadata';
+    vids.B.poster = CL.execution.poster;
+    // Under reduced motion nothing downloads until the viewer presses Play (posters stand in).
+    let srcSet = false;
+    const ensureSrc = () => { if (!srcSet) { srcSet = true; vids.A.src = CL.experience.src; vids.B.src = CL.execution.src; } };
+    if (!reduceMotion) ensureSrc();
+    // The first clip loads fully once the walkthrough is near the viewport (or on Play); the second a few seconds in.
+    const loadA = () => { if (vids.A.preload !== 'auto') vids.A.preload = 'auto'; };
+    if (!reduceMotion) new IntersectionObserver((ents) => { if (ents.some((e) => e.isIntersecting)) loadA(); }, { rootMargin: '20% 0px' }).observe(root);
+    let bLoaded = false;
+    const loadB = () => { if (!bLoaded) { bLoaded = true; vids.B.preload = 'auto'; } };
+    const tag = $('.wt-tag'), speedEl = $('.wt-speed'), playBtn = $('.play');
     const bInstr = $('.b-instr'), bReq = $('.b-req');
     $('.b-instr .say').textContent = `“${D.instruction}”`;
     $('.b-req .say').textContent = `“${D.request}”`;
@@ -141,7 +147,7 @@
       };
       const crop = imgInsp.crop || [330, 250, 600, 360];
       evCards.image = ev.appendChild(el('div', 'ev-card image', `
-        <div class="ev-h">${ICON.image}Image<span class="src">step ${s.i} · ${esc(call(s))} · zoomed</span></div>
+        <div class="ev-h">${ICON.image}Frame<span class="src">step ${s.i} · ${esc(call(s))} · zoomed</span></div>
         <div class="ev-img" style="aspect-ratio:${crop[2]} / ${crop[3]}">
           <svg viewBox="${crop.join(' ')}" role="img" aria-label="Stored head-camera frame: the soda can with grapes right beside it">
             <style>
@@ -179,7 +185,7 @@
       wrs.push(wr);
       const tc = place(el('div', 'cell text', `<div class="in c-text">${esc(s.text)}</div>`), col, 3); tc.title = s.text; cells.text.push(tc);
       const dc = place(el('div', 'cell desc', `<div class="in c-desc">${esc(s.desc)}</div>`), col, 4); dc.title = s.desc; cells.desc.push(dc);
-      const ic = place(el('div', 'cell img', `<div class="in"><img src="${s.frame}" alt="Head-camera frame saved at step ${s.i}"></div><span class="use">used</span>`), col, 5); cells.image.push(ic);
+      const ic = place(el('div', 'cell img', `<div class="in"><img src="${s.frame.replace('.jpg', '_t.jpg')}" alt="Head-camera frame saved at step ${s.i}"></div><span class="use">used</span>`), col, 5); cells.image.push(ic);
       const gc = place(el('div', 'cell graph', `<div class="in">${graphSVG(s.graph)}</div>`), col, 6); cells.graph.push(gc);
     });
 
@@ -208,7 +214,7 @@
         let kx = x + (span - kidsW(g)) / 2;
         g.kids.forEach((k, ki) => {
           const kw = wOf(k[0]), ky = 3, cx = kx + kw / 2;
-          const pos = D.positions[k[0]];
+          const pos = g.rel === 'on' ? D.positions[k[0]] : null;
           const tip = k[1] != null ? `${k[0]} [${k[1]}] — ${g.rel} ${pl}${pos ? ` — at (${pos.join(', ')}) m` : ''}` : 'also on the table: banana, peach, apple, plate, lemon';
           out += `<path class="g-edge" d="M${cx},${ky + nh} L${x + span / 2},${py}"/>`;
           if (ki === 0) out += `<text class="g-rel" x="${(cx + x + span / 2) / 2 - 9}" y="${(ky + nh + py) / 2 + 3}">${g.rel}</text>`;
@@ -234,12 +240,12 @@
         curPhase = p; seek = true;
       }
       const want = p.video ? p.v0 + (t - p.t0) : p.vAt;
-      if (seek && Math.abs(v.currentTime - want) > 0.08) {
+      if (seek && srcSet && Math.abs(v.currentTime - want) > 0.08) {
         if (v.readyState >= 1) v.currentTime = want;
         else v.addEventListener('loadedmetadata', () => syncVideo(true), { once: true });
       }
-      const run = playing && !!p.video && t < T;
-      if (run && v.paused) v.play().catch(() => {});
+      const run = playing && !!p.video && t < T && srcSet;
+      if (run && v.paused) v.play().catch(() => { if (playing) { playing = false; render(); } });
       if (!run && !v.paused) v.pause();
     }
 
@@ -273,8 +279,8 @@
       requestAnimationFrame(frame);
     }
 
-    function seekTo(x) { t = Math.max(0, Math.min(T - 0.001, x)); endHold = null; syncVideo(true); render(); }
-    function setPlaying(on) { playing = on; if (on && t >= T) t = 0; syncVideo(true); }
+    function seekTo(x) { t = Math.max(0, Math.min(T - 0.001, x)); endHold = null; if (t >= ph('exp').t1 - 2 && !reduceMotion) loadB(); syncVideo(true); render(); }
+    function setPlaying(on) { playing = on; if (on && t >= T - 0.06) { t = 0; endHold = null; } syncVideo(true); }
 
     // ---------- render ----------
     const toggle = (n, c, on) => { if (n.classList.contains(c) !== on) n.classList.toggle(c, on); };
@@ -284,6 +290,16 @@
     function render() {
       const p = phaseAt(t), pi = P.indexOf(p);
       toggle(root, 'playing', playing);
+      if (playBtn.getAttribute('aria-label') !== (playing ? 'Pause' : 'Play')) playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+      if (t > 8) loadB();
+      // footage speed (the clips are condensed)
+      let sp = '';
+      if (p.video) {
+        const c = p.video === 'A' ? A : B, vt = p.v0 + (t - p.t0);
+        const sg = c.segments.find((x) => vt >= x.out_start && vt < x.out_end);
+        if (sg) sp = `${+sg.speed.toFixed(1)}\u00D7 speed`;
+      }
+      if (speedEl.textContent !== sp) { speedEl.textContent = sp; toggle(speedEl, 'on', !!sp); }
       P.forEach((q, k) => {
         const f = t >= q.t1 ? 1 : t <= q.t0 ? 0 : (t - q.t0) / (q.t1 - q.t0);
         chBars[k].style.width = (f * 100).toFixed(2) + '%';
@@ -335,6 +351,7 @@
         toggle(evCards[s.mod], 'on', p.id === s.mod);
         toggle(evCards[s.mod].querySelector('.ev-verdict'), 'on', p.id === s.mod && verdictIn);
       });
+      toggle(ev, 'has-on', !!p.insp);
       cells.text.forEach((c) => toggle(c, 'read', p.id === 'text'));
       cells.desc.forEach((c) => toggle(c, 'read', p.id === 'desc'));
       for (const k of ['text', 'desc', 'image']) toggle(rowLabels[k], 'read', p.id === k);
@@ -359,25 +376,25 @@
     function drawArcs() {
       if (!arcKey || getComputedStyle(arcs).display === 'none') { arcs.innerHTML = ''; return; }
       const R = root.getBoundingClientRect(), sr = $('.wt-screen').getBoundingClientRect();
-      const src = arcKey === 'image' ? cells.image[imgInsp.step] : rowLabels[arcKey];
+      const src = rowLabels[arcKey];
       arcs.setAttribute('viewBox', `0 0 ${R.width} ${R.height}`);
       const r = src.getBoundingClientRect();
-      const sx = r.left - R.left + (arcKey === 'image' ? 0 : 2), sy = r.top + r.height / 2 - R.top;
+      const sx = r.left - R.left - 6, sy = r.top + r.height / 2 - R.top;
       const card = evCards[arcKey].getBoundingClientRect();
       const tx = Math.min(card.right, sr.right) - R.left - 2, ty = card.top + Math.min(card.height, sr.height * 0.6) / 2 - R.top;
       const d = `M${sx},${sy} C${sx - 40},${sy} ${tx + 50},${ty} ${tx},${ty}`;
       arcs.innerHTML = `<path class="halo" d="${d}"/><path class="line" d="${d}"/><circle cx="${sx}" cy="${sy}" r="3.5"/><circle cx="${tx}" cy="${ty}" r="3.5"/>`;
     }
     new ResizeObserver(() => { fitLines(); drawArcs(); }).observe(root);
+    mem.addEventListener('scroll', () => toggle(mem, 'end', mem.scrollLeft >= mem.scrollWidth - mem.clientWidth - 2), { passive: true });
     fitLines();
 
     // ---------- interaction ----------
-    $('.play').addEventListener('click', () => { userPaused = playing; setPlaying(!playing); });
+    playBtn.addEventListener('click', () => { userPaused = playing; if (!playing) { ensureSrc(); loadA(); loadB(); } setPlaying(!playing); });
 
     let dragging = false;
     const scrubAt = (e) => {
-      const b = chBtns.find((x) => { const r = x.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right; })
-        || (e.clientX < chBtns[0].getBoundingClientRect().left ? chBtns[0] : chBtns[chBtns.length - 1]);
+      const b = [...chBtns].reverse().find((x) => x.getBoundingClientRect().left <= e.clientX) || chBtns[0];
       const r = b.getBoundingClientRect(), q = P[chBtns.indexOf(b)];
       const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
       seekTo(q.t0 + f * (q.t1 - q.t0));
@@ -391,7 +408,7 @@
       if (e.target.closest('.chapters button') && (e.key === 'Enter' || e.key === ' ')) return;
       const pi = P.indexOf(phaseAt(t));
       if (e.key === ' ' || e.key === 'k') { e.preventDefault(); userPaused = playing; setPlaying(!playing); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); seekTo(P[Math.min(pi + 1, P.length - 1)].t0 + 0.01); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); if (pi < P.length - 1) seekTo(P[pi + 1].t0 + 0.01); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); const q = P[pi]; seekTo((t - q.t0 < 1.5 && pi > 0 ? P[pi - 1] : q).t0 + 0.01); }
     });
 
@@ -400,19 +417,25 @@
     if (/(?:^#|&)still\b/.test(location.hash)) root.classList.add('still');
     if (hashT) {
       userPaused = !/(?:^#|&)play\b/.test(location.hash);
+      if (!userPaused) ensureSrc();
       seekTo(parseFloat(hashT[1]));
       if (root.getBoundingClientRect().bottom > innerHeight) root.scrollIntoView({ block: 'start' });
     }
 
     // play while on screen (unless the viewer paused it)
     if (!reduceMotion) {
+      let inView = false;
       new IntersectionObserver((ents) => {
         for (const en of ents) {
-          if (en.intersectionRatio >= 0.35 && !userPaused && !playing) setPlaying(true);
+          inView = en.intersectionRatio >= 0.35;
+          if (inView && !userPaused && !playing) setPlaying(true);
           else if (en.intersectionRatio <= 0.1 && playing) setPlaying(false);
         }
       }, { threshold: [0, 0.1, 0.35, 0.6] }).observe(root);
-      document.addEventListener('visibilitychange', () => { if (document.hidden && playing) setPlaying(false); });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && playing) setPlaying(false);
+        else if (!document.hidden && inView && !userPaused && !playing) setPlaying(true);
+      });
     } else if (!hashT) {
       seekTo(ph('image').t1 - 0.05);
     }

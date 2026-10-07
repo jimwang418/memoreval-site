@@ -8,14 +8,6 @@ window.WT_DATA = {
     experience: { name: 'coke_experience_v2', src: 'media/real/coke_experience_v2.mp4', poster: 'media/real/coke_experience_v2.jpg' },
     execution: { name: 'coke_execution_v2', src: 'media/real/coke_execution_v2.mp4', poster: 'media/real/coke_execution_v2.jpg' },
   },
-  // Used if the files above are missing.
-  fallback: {
-    segments: 'data/real_segments.json',
-    clips: {
-      experience: { name: 'coke_experience', src: 'media/real/coke_experience.mp4', poster: 'media/real/coke_experience.jpg' },
-      execution: { name: 'coke_execution', src: 'media/real/coke_execution.mp4', poster: 'media/real/coke_execution.jpg' },
-    },
-  },
   instruction: 'Throw away the soda can.',
   request: 'Bring me the fruit that was next to the soda can.',
   // Part of the execution clip shown while the user asks.
@@ -25,7 +17,7 @@ window.WT_DATA = {
     {
       skill: 'observe', args: '', src: [7.3, 9.9], capture: 9.8, frame: 'media/real/head/F0.jpg',
       text: '[id 13] person in room. [id 7] table holds [id 14] soda_can, [id 11] grapes, [id 12] banana, [id 15] peach, [id 17] apple, [id 8] plate ([id 5] lemon).',
-      desc: 'A person sits in an office chair facing the robot; behind them, a desk with a monitor and a camera on a tripod.',
+      desc: 'A person sits in an office chair facing the robot, in front of a plain white wall and a wooden door.',
       graph: [{ parent: ['table', 7], rel: 'on', kids: [['soda_can', 14], ['grapes', 11], ['+5']] }],
     },
     {
@@ -55,7 +47,7 @@ window.WT_DATA = {
     {
       skill: 'place', args: 'trash_can', src: [209.5, 251.6], capture: 251.3, frame: 'media/real/head/F4.jpg',
       text: 'Placed [id 14] soda_can in [id 9] trash_can. Task completed.',
-      desc: 'The grippers are open above the trash bin and the can is gone. The table holds a banana, a peach, an apple, and a plate with a lemon.',
+      desc: 'The grippers are open above the trash bin and the can is gone. The table holds grapes, a banana, a peach, an apple, and a plate with a lemon.',
       graph: [
         { parent: ['table', 7], rel: 'on', kids: [['grapes', 11], ['+5']] },
         { parent: ['trash_can', 9], rel: 'in', kids: [['soda_can', 14]] },
@@ -74,7 +66,7 @@ window.WT_DATA = {
     { skill: 'navigate_to', args: 'grapes', src: [22, 34.9] },
     { skill: 'pick', args: 'grapes', src: [65, 107.1] },
     { skill: 'navigate_to', args: 'user', src: [120.3, 138.6] },
-    { skill: 'give_to_user', args: '', src: [149.4, 151.9] },
+    { skill: 'give_to_user', args: '', src: [149.4, 151.2] },
   ],
 
   // The agent inspects memory one modality at a time (durations in seconds).
@@ -87,12 +79,12 @@ window.WT_DATA = {
     },
     {
       mod: 'desc', label: 'Descriptions', dur: 6, ok: false, show: [1, 2],
-      short: 'No arrangement described',
-      verdict: 'Names the can and every fruit, but never says how they were arranged.',
+      short: 'Nothing on what stood next to the can',
+      verdict: 'Names the can and every fruit, but never says what stood next to the can.',
       highlight: ['gold-colored can', 'gold can', 'grapes'],
     },
     {
-      mod: 'image', label: 'Images', dur: 7.5, ok: true, step: 1,
+      mod: 'image', label: 'Frames', dur: 7.5, ok: true, step: 1,
       short: 'Grapes, right beside the can',
       verdict: 'The stored frame shows the grapes right beside the can.',
       answer: 'grapes',

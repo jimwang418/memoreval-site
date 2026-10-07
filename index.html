@@ -4,11 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MeMoREval: What Should Embodied Agents Remember?</title>
-  <meta name="description" content="MeMoREval is a controlled benchmark for memory modality in embodied agents: 53 tasks in 4 simulated environments, measuring task success together with the inference cost of writing and reading memory.">
+  <meta name="description" content="MeMoREval is a controlled benchmark for memory modality in embodied agents: 53 tasks in four simulated environments, measuring task success together with the inference cost of writing and reading memory.">
+  <link rel="icon" type="image/svg+xml" href="assets/img/dexmate-symbol.svg">
+  <meta name="theme-color" content="#e8ecde">
+  <meta property="og:title" content="MeMoREval: What Should Embodied Agents Remember?">
+  <meta property="og:description" content="A controlled benchmark for memory modality in embodied agents: 53 tasks in four simulated environments, measuring task success and the inference cost of writing and reading memory.">
+  <meta property="og:type" content="website">
+  <!-- Social cards need absolute URLs: replace with https://<site>/media/og.jpg on deploy. -->
+  <meta property="og:image" content="media/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:image" content="media/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/sections.css">
 </head>
 <body>
 
@@ -20,7 +32,7 @@
       <a href="#protocol">Protocol</a>
       <a href="#benchmark">Benchmark</a>
       <a href="#results">Results</a>
-      <a href="#release">Try it</a>
+      <a href="#release">Release</a>
     </nav>
   </div>
 </header>
@@ -47,12 +59,12 @@
           <span><sup>3</sup>Purdue University</span>
           <span><sup>†</sup>Work done during an internship at Dexmate</span>
         </div>
-        <p class="tldr">Should a robot remember what it saw as text, as generated descriptions, or as the camera frames themselves? MeMoREval measures how that choice affects task success and the inference cost of building and reading memory.</p>
+        <p class="tldr">Should a robot remember what it sees as text records, as generated descriptions of its camera frames, or as the frames themselves? MeMoREval measures how that choice affects task success and the inference cost of writing and reading memory. With our primary model, keeping the frames is both cheaper and more accurate than describing them.</p>
         <div class="panel-foot">
           <div class="links">
             <span class="btn soon">Paper · coming soon</span>
             <span class="btn soon">Code · coming soon</span>
-            <span class="btn soon">BibTeX · coming soon</span>
+            <a class="btn" href="#cite">BibTeX</a>
           </div>
           <img class="dex" src="assets/img/dexmate-logo.svg" alt="Dexmate">
         </div>
@@ -66,15 +78,16 @@
       <figure class="wt" id="walkthrough" data-walkthrough tabindex="0" aria-label="Real-robot walkthrough of memory being written and later read">
         <div class="wt-head">
           <h2 class="wt-title">From experience to request: what the robot saves, and what it uses</h2>
-          <div class="wt-illus"><span class="pill">Illustrative</span><span>Footage and camera frames are from our real-robot run; the memory contents shown are simplified to illustrate each modality.</span></div>
+          <div class="wt-illus"><span class="pill">Illustrative</span><span>Real footage, sped up; memory contents simplified</span></div>
         </div>
 
         <div class="wt-main">
           <div class="wt-screen">
             <div class="wt-video">
-              <video class="vA" muted playsinline preload="auto"></video>
-              <video class="vB off" muted playsinline preload="auto"></video>
+              <video class="vA" muted playsinline preload="metadata"></video>
+              <video class="vB off" muted playsinline preload="metadata"></video>
               <span class="wt-tag" data-phase="exp">Experience</span>
+              <span class="wt-speed" aria-hidden="true"></span>
               <div class="bubble b-instr"><span class="who">User</span><span class="say"></span></div>
               <div class="bubble b-req"><span class="who">User, later</span><span class="say"></span></div>
             </div>
@@ -90,45 +103,274 @@
             <svg class="i-pause" viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>
           </button>
           <div class="chapters" role="group" aria-label="Chapters"></div>
-          <span class="ch-now" aria-live="polite"></span>
+          <span class="ch-now"></span>
         </div>
 
         <div class="agent">
           <div class="ag-req">
             <div class="ag-h">Agent <span class="pill">fresh context · memory only</span></div>
-            <p class="ag-wait">Later, a request arrives. The agent has no camera view and must answer from memory alone.</p>
+            <p class="ag-wait">Later, a request arrives. The agent has no camera view and must plan from memory alone.</p>
             <q class="ag-q"></q>
           </div>
           <ol class="checks"></ol>
           <div class="ag-plan">
-            <div class="ag-h">Plan <span class="sub">executed open-loop</span></div>
+            <div class="ag-h">Plan <span class="sub">executed open-loop, without new observations</span></div>
             <div class="plan-list"></div>
           </div>
         </div>
         <svg class="wt-arcs" aria-hidden="true"></svg>
       </figure>
+      <p class="wt-cap">Footage and head-camera frames come from our run on the physical robot (wiki memory with frames and scene graphs); the clips are sped up, with pauses cut. The memory contents and the order in which the agent consults them are simplified to illustrate each modality.</p>
+      <noscript><p class="wt-cap">This walkthrough needs JavaScript. It shows the robot storing text records, descriptions, frames and scene graphs while it works, and an agent later reading them to find the fruit that was next to the can.</p></noscript>
 
       <!-- Second real-robot task -->
       <figure class="demo2" id="lemon">
-        <figcaption class="demo2-h">A second task on the same robot</figcaption>
+        <figcaption class="demo2-h">A second real-robot task</figcaption>
         <div class="demo2-grid">
           <div class="clip">
-            <video src="media/real/lemon_experience.mp4" poster="media/real/lemon_experience.jpg" muted playsinline loop preload="metadata" data-autoplay></video>
+            <video src="media/real/lemon_experience_v2.mp4" poster="media/real/lemon_experience_v2.jpg" muted playsinline loop preload="metadata" data-autoplay></video>
             <p><b>Experience.</b> <q>Move the lemon to the blue plate.</q></p>
           </div>
           <div class="clip">
-            <video src="media/real/lemon_execution.mp4" poster="media/real/lemon_execution.jpg" muted playsinline loop preload="metadata" data-autoplay></video>
-            <p><b>Later.</b> <q>Which color is the plate you took the lemon from?</q> Orange. <q>Bring me the fruit to the right of where the lemon was.</q></p>
+            <video src="media/real/lemon_execution_v2.mp4" poster="media/real/lemon_execution_v2.jpg" muted playsinline loop preload="metadata" data-autoplay></video>
+            <p><b>Later.</b> <q>Which color is the plate you took the lemon from?</q> Answer: orange. Then: <q>Bring me the fruit to the right of where the lemon was.</q></p>
           </div>
         </div>
+        <p class="clip-note">Clips sped up 2&ndash;6&times;, with pauses cut.</p>
       </figure>
     </div>
   </section>
 
-  <section class="block" id="protocol"><div class="wrap"><h2>Protocol</h2><p class="todo">Next: the experience → request protocol.</p></div></section>
-  <section class="block" id="benchmark"><div class="wrap"><h2>Benchmark</h2><p class="todo">Next: environments, categories and the task gallery.</p></div></section>
-  <section class="block" id="results"><div class="wrap"><h2>Results</h2><p class="todo">Next: frames vs. descriptions, then deployment-oriented conditions.</p></div></section>
-  <section class="block" id="release"><div class="wrap"><h2>Try it with your memory system</h2><p class="todo">Release details to follow.</p></div></section>
+  <section class="block" id="overview">
+    <div class="wrap">
+      <p class="eyebrow">Overview</p>
+      <h2>What we contribute</h2>
+      <div class="contrib">
+        <a class="c-card" href="#protocol">
+          <span class="c-n">1</span>
+          <h3>A controlled protocol</h3>
+          <p>Memory is written during a scripted experience; requests come later and are answered from memory alone, in a fresh context. Write-time and read-time inference costs are measured separately.</p>
+        </a>
+        <a class="c-card" href="#benchmark">
+          <span class="c-n">2</span>
+          <h3>A benchmark</h3>
+          <p>53 tasks in four simulated indoor environments, covering seven kinds of information a robot must remember, with configurable memory modalities and backends.</p>
+        </a>
+        <a class="c-card" href="#results">
+          <span class="c-n">3</span>
+          <h3>Reference evaluations</h3>
+          <p>Six memory conditions on five backends with Gemini 3.7 Flash, checked on two more models, plus three deployment-oriented variants. For the primary model, frames give higher success than descriptions at lower write cost.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="protocol">
+    <div class="wrap">
+      <p class="eyebrow">Protocol</p>
+      <h2>Experience first, requests later</h2>
+      <p class="lead">Every task has two phases. During the <b>experience</b>, the robot carries out a scripted sequence of actions while the memory module records what happens, without knowing which details later requests will need. During the <b>request</b>, the agent starts from a fresh context, receives no new observations, and has to answer or act from memory alone.</p>
+
+      <div class="proto" aria-label="Protocol diagram">
+        <div class="pr-col pr-exp">
+          <div class="pr-h"><span class="pr-k">1</span>Experience</div>
+          <p class="pr-sub">Scripted actions and events</p>
+          <ul class="pr-list">
+            <li>A tour of the environment</li>
+            <li>An object is moved, a container opened and closed</li>
+            <li>A user mentions a preference</li>
+          </ul>
+          <p class="pr-sub">Observed at every step</p>
+          <div class="pr-obs">
+            <span><i data-ic="text"></i>Text: robot state, detected objects and relations, user messages, action outcomes</span>
+            <span><i data-ic="image"></i>Camera frame, annotated with object boxes and IDs</span>
+            <span><i data-ic="graph"></i>Scene-graph snapshot: object positions, support and containment</span>
+          </div>
+          <div class="pr-cost"><b>Write-time cost</b> per experience step: writer updates and description generation</div>
+        </div>
+
+        <div class="pr-arrow pr-w"><span>write</span></div>
+
+        <div class="pr-col pr-mem">
+          <div class="pr-h"><span class="pr-k">M</span>Memory module</div>
+          <p class="pr-sub">Writer</p>
+          <p class="pr-p">An LLM turns textual observations into memory records. Its inputs are identical in all six memory conditions.</p>
+          <p class="pr-sub">Archive, indexed by step</p>
+          <div class="pr-arch">
+            <span><i data-ic="desc"></i>Descriptions <em>one model call per frame</em></span>
+            <span><i data-ic="image"></i>Frames <em>stored as-is</em></span>
+            <span><i data-ic="graph"></i>Scene graphs <em>stored as-is</em></span>
+          </div>
+          <p class="pr-sub">Backend</p>
+          <p class="pr-p">Organizes and retrieves memory: a transcript (a rolling log, no writer), a wiki (named pages the writer appends to and rewrites), or our adaptations of A-MEM, Mem0 and ObsMem. Every entry carries its step number, and the agent fetches archived artifacts by step.</p>
+        </div>
+
+        <div class="pr-arrow pr-r"><span>read</span></div>
+
+        <div class="pr-col pr-req">
+          <div class="pr-h"><span class="pr-k">2</span>Request</div>
+          <p class="pr-sub">Fresh context, no new observations</p>
+          <div class="pr-reqs">
+            <div><b>Information request</b><p>&ldquo;Which cabinet contains the mug?&rdquo; The answer is checked against a reference answer of a fixed type, such as a room or region, an object, a color, a count or a set.</p></div>
+            <div><b>Action request</b><p>&ldquo;Fetch the mug.&rdquo; The agent submits one complete plan of skill calls, executed open-loop and checked against the final simulator state.</p></div>
+          </div>
+          <div class="pr-cost"><b>Read-time cost</b> per request: every model call while answering, also reported per successful request</div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <h3>Why open-loop plans</h3>
+          <p>No observations come back while the plan runs, so the agent cannot make up for missing memory by searching the scene, for instance by opening cabinets until the mug appears. Success then measures what the memory retained.</p>
+        </div>
+        <div class="note">
+          <h3>Stacked histories</h3>
+          <p>Because experience and requests are separate, tasks can be stacked: the experience phases of 10&ndash;11 tasks form one history of 37&ndash;100 steps, followed by their 21 requests. Each component task keeps its own grading.</p>
+        </div>
+        <div class="note">
+          <h3>Two costs, kept apart</h3>
+          <p>Write-time cost grows with the actions a robot takes; read-time cost grows with the requests it receives. Their balance depends on the deployment, so we report both, in weighted tokens <span class="math">T<sub>in</sub>&middot;P<sub>in</sub>/P<sub>out</sub> + T<sub>out</sub></span>, where T counts input and output tokens and P is the model&rsquo;s price per token. Weighted tokens are proportional to dollar cost for a given model.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="block" id="benchmark">
+    <div class="wrap">
+      <p class="eyebrow">Benchmark</p>
+      <h2>53 tasks in four environments</h2>
+      <p class="lead">MeMoREval runs the protocol in the Genesis simulator, in four indoor environments adapted from SceneSmith scenes, each with seven to nine rooms and 200&ndash;300 objects. A simulated Dexmate Vega&nbsp;1 bimanual mobile manipulator acts through skills for navigation, opening and closing furniture, and picking and placing objects. Every request is graded deterministically.</p>
+      <div class="envs" data-g="envs"></div>
+
+      <h3 class="sub-h">Seven kinds of information to remember</h3>
+      <p class="sub-lead">The categories describe the information a task depends on, not which memory modality is expected to do best.</p>
+      <div class="cats" data-g="cats"></div>
+
+      <h3 class="sub-h">Task gallery</h3>
+      <p class="sub-lead">One task per category, replayed from the robot&rsquo;s head camera: what happens during the experience, the stored frames that hold the answer, and what is asked later. Every experience starts with the scene&rsquo;s scripted tour, which the clips omit; the replays are sped up, with pauses cut.</p>
+      <div class="gallery">
+        <div class="g-list" role="tablist" aria-label="Tasks" data-g="list"></div>
+        <div class="g-player" data-g="player">
+          <div class="gp-video"><video muted playsinline loop preload="metadata"></video><span class="gp-chip"></span><button class="vbtn" type="button" aria-label="Pause"><svg class="i-play" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9.5-5.5z"/></svg><svg class="i-pause" viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg></button></div>
+          <div class="gp-info">
+            <div class="gp-meta"></div>
+            <h4 class="gp-title"></h4>
+            <div class="gp-block gp-exp"></div>
+            <div class="gp-block"><div class="gp-h">Key frames in memory</div><div class="gp-frames"></div></div>
+            <div class="gp-block gp-reqs"></div>
+          </div>
+          <div class="gp-track" aria-hidden="true"></div>
+        </div>
+      </div>
+      <p class="real-note">The same protocol and memory interfaces also run on the physical Vega&nbsp;1, using its existing navigation and manipulation controllers, a SLAM map, SAM&nbsp;3 segmentation and manually annotated scene-graph records, as in the <a href="#walkthrough">walkthrough above</a>.</p>
+    </div>
+  </section>
+  <section class="block" id="results">
+    <div class="wrap">
+      <p class="eyebrow">Results</p>
+      <h2>For our primary model, keeping frames is cheaper than describing them and more accurate</h2>
+      <p class="lead" data-fill="lead"></p>
+      <p class="sub-lead">Six memory conditions, each adding to the writer&rsquo;s text records: <b>text</b> (the records only); <b>desc@64</b>, <b>desc@256</b> and <b>desc@1024</b> (plus a generated description of each frame, at a budget of about 64, 256 or 1024 tokens); <b>frames</b> (plus the annotated camera frames); and <b>frames+graph</b> (plus scene-graph snapshots). <span data-fill="controls"></span></p>
+      <div class="stats" data-fill="stats"></div>
+
+      <figure class="chart-card" id="fig-ledger">
+        <div class="cc-head">
+          <div class="cc-title"><h3>Success against inference cost</h3><p class="cc-sub" data-fill="ledger-sub"></p></div>
+          <div class="cc-ctrl">
+            <div class="seg" role="group" aria-label="Cost shown">
+              <button type="button" data-v="write" aria-pressed="true">Write time</button>
+              <button type="button" data-v="info" aria-pressed="false">Read time · information</button>
+              <button type="button" data-v="action" aria-pressed="false">Read time · action</button>
+            </div>
+            <button class="tbl-btn" type="button" aria-pressed="false">Table</button>
+          </div>
+        </div>
+        <div class="legend-row" data-legend="conds"></div>
+        <div class="cc-body"></div>
+        <figcaption class="cc-cap" data-fill="ledger-cap"></figcaption>
+      </figure>
+
+      <div class="why">
+        <div class="note"><h3>At write time</h3><p data-fill="why-write"></p></div>
+        <div class="note"><h3>At read time</h3><p data-fill="why-read"></p></div>
+      </div>
+
+      <h3 class="sub-h">Where frames help</h3>
+      <p class="sub-lead" data-fill="cats-lead"></p>
+      <figure class="chart-card" id="fig-cats">
+        <div class="cc-head">
+          <div class="cc-title"><h3 data-fill="cats-title">Paired difference in task success</h3><p class="cc-sub">Percentage points, with 95% paired-bootstrap intervals over tasks</p></div>
+          <div class="cc-ctrl">
+            <div class="seg" role="group" aria-label="Comparison">
+              <button type="button" data-v="fd" aria-pressed="true">frames vs. desc@1024</button>
+              <button type="button" data-v="gf" aria-pressed="false">frames+graph vs. frames</button>
+            </div>
+            <button class="tbl-btn" type="button" aria-pressed="false">Table</button>
+          </div>
+        </div>
+        <div class="cc-body"></div>
+      </figure>
+
+      <h3 class="sub-h">Across models: frames+graph is best for every model</h3>
+      <p class="sub-lead" data-fill="models-lead"></p>
+      <figure class="chart-card" id="fig-models">
+        <div class="cc-head">
+          <div class="cc-title"><h3>Task success by memory condition</h3><p class="cc-sub">Each model serves as writer, describer and agent; seed 0; transcript, wiki and A-MEM backends</p></div>
+          <div class="cc-ctrl"><button class="tbl-btn" type="button" aria-pressed="false">Table</button></div>
+        </div>
+        <div class="legend-row" data-legend="conds"></div>
+        <div class="cc-body"></div>
+      </figure>
+
+      <h3 class="sub-h">Deployment-oriented variants</h3>
+      <p class="sub-lead">The controlled comparison uses short single tasks, a writer that receives only textual observations, and storage of every frame. Deployments can differ on each of these, and the benchmark evaluates such variants directly: backends respond differently to long histories and to the writer&rsquo;s choices.</p>
+      <figure class="chart-card" id="fig-deploy">
+        <div class="cc-head">
+          <div class="cc-title"><h3 data-fill="deploy-title"></h3><p class="cc-sub" data-fill="deploy-sub"></p></div>
+          <div class="cc-ctrl">
+            <div class="seg" role="group" aria-label="Variant">
+              <button type="button" data-v="stack" aria-pressed="true">Stacked histories</button>
+              <button type="button" data-v="select" aria-pressed="false">Writer selects images</button>
+              <button type="button" data-v="sees" aria-pressed="false">Writer sees images</button>
+            </div>
+            <button class="tbl-btn" type="button" aria-pressed="false">Table</button>
+          </div>
+        </div>
+        <div class="cc-sub-ctrl" data-fill="deploy-ctrl"></div>
+        <div class="legend-row" data-legend="deploy"></div>
+        <div class="cc-body"></div>
+        <figcaption class="cc-cap" data-fill="deploy-cap"></figcaption>
+      </figure>
+
+      <h3 class="sub-h">One benchmark, many memory designs</h3>
+      <p class="sub-lead">Every axis below is a setting of the same protocol and tasks. Filled chips are settings in the paper&rsquo;s reference evaluations (not every combination was run); dashed chips mark where a new memory system plugs in.</p>
+      <div class="space" data-fill="space"></div>
+    </div>
+  </section>
+  <section class="block" id="release">
+    <div class="wrap">
+      <p class="eyebrow">Release</p>
+      <h2>Evaluate your own memory system</h2>
+      <p class="lead">We plan to release the MeMoREval benchmark, the evaluation code and the reference memory implementations. Plug in a memory module and compare it with the reference configurations under the same protocol.</p>
+      <ol class="steps">
+        <li><span class="st-n">1</span><div><h3>Implement the memory interface</h3><p>Your module receives each experience step&rsquo;s observations, decides what to retain and in which form, and serves the agent at request time through the memory text placed in its prompt and the retrieval tools it can call.</p></div></li>
+        <li><span class="st-n">2</span><div><h3>Run the protocol</h3><p>Once released: 53 single tasks and four stacked histories in four simulated environments, with the same model as writer, describer and agent for every condition you compare. The experience is fixed per task, so differences reflect your memory design.</p></div></li>
+        <li><span class="st-n">3</span><div><h3>Compare</h3><p>Success by category and request type, with write-time and read-time costs, side by side with the six reference conditions and five backends run with the same model (costs are comparable only within a model).</p></div></li>
+      </ol>
+      <div class="links rel-links">
+        <span class="btn soon">Paper · coming soon</span>
+        <span class="btn soon">Code · coming soon</span>
+      </div>
+      <div class="cite" id="cite">
+        <div class="cite-h"><h3>Citation</h3><button class="copy" type="button">Copy</button></div>
+        <pre><code>@misc{wang2026memoreval,
+  title  = {What Should Embodied Agents Remember? Benchmarking and Evaluating Memory Modality for Embodied Agents},
+  author = {Wang, Junxiang and Liu, Yuchen and Wu, Yi and Chen, Guofei and Pechuk, Nir and Chen, Tao and Erickson, Zackory and Qin, Yuzhe and Li, Tianyu},
+  year   = {2026},
+  note   = {Dexmate technical report}
+}</code></pre>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer><div class="wrap">© 2026 Dexmate</div></footer>
@@ -136,5 +378,7 @@
 <script src="assets/js/walkthrough-data.js"></script>
 <script src="assets/js/walkthrough.js"></script>
 <script src="assets/js/site.js"></script>
+<script src="assets/js/results.js"></script>
+<script src="assets/js/gallery.js"></script>
 </body>
 </html>
